@@ -3,9 +3,13 @@ import scrapy
 from urllib import parse
 import execjs
 import json
+import pymysql
+import random
 from scrapy import Request
 from googlefanyi import settings
 from googlefanyi.items import GoogleFanyiItem
+
+
 class ProductsSpider(scrapy.Spider):
     name = 'fanyi'
     #allowed_domains = ['sss']
@@ -52,17 +56,16 @@ class ProductsSpider(scrapy.Spider):
     """
         jsPlus = execjs.compile(jsCode)
         return jsPlus.call('TL', keyword)
+
     def start_requests(self):
         with open(self.filePath, 'r') as f:
             kws = f.readlines()
-            for kw in kws:
-                print(kw)
-                tk = self.TK(kw.strip())
-                print(tk)
-                kwUrl = parse.quote(kw.strip())
-                url = 'https://translate.google.cn/translate_a/single?client=webapp&sl=auto&tl=en&hl=zh-CN&dt=at&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&dt=gt&ssel=0&tsel=0&kc=1&tk=' + tk + '&q=' + kwUrl
-                print(url)
-                yield Request(url, callback=self.parse, headers=self.headers)
+        for kw in kws:
+            keyword = kw.strip()
+            tk = self.TK(keyword)
+            kwUrl = parse.quote(keyword)
+            url = 'https://translate.google.cn/translate_a/single?client=webapp&sl=auto&tl=en&hl=zh-CN&dt=at&dt=bd&dt=ex&dt=ld&dt=md&dt=qca&dt=rw&dt=rm&dt=ss&dt=t&dt=gt&ssel=0&tsel=0&kc=1&tk=' + tk + '&q=' + kwUrl
+            yield Request(url, callback=self.parse, headers=self.headers, meta={'tag': 0})
 
     def parse(self, response):
         item = GoogleFanyiItem()
